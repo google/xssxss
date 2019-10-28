@@ -13,7 +13,7 @@
 # the License.
 
 CPPFLAGS = -D_GNU_SOURCE
-CFLAGS = -O2 -flto -Wall -Werror=format-security -fvisibility=hidden -fpic -pthread
+CFLAGS = -O2 -flto -Wall -Werror=format-security -fstack-protector-strong -fvisibility=hidden -fpic -pthread
 LDFLAGS = -Wl,-O2 -flto -Wl,-z,relro -Wl,-z,now -fpic -pthread -shared -s
 LDLIBS = -lX11 -ldl
 
