@@ -21,6 +21,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <spawn.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "xssbase.h"
@@ -47,6 +49,9 @@ static void* WakerThreadMain(void* const ignored) {
 
     // Start the process to wake up xscreensaver. When it exits, we'll get
     // SIGCHLD, but we don't care; see notes in `SpawnWakerThread`.
+    //
+    // TODO(bbaren@google.com): Once Linux 5.2 is deployed more widely, switch
+    // to using pidfds.
     pid_t waker_pid;
     char* const waker[] = {"xdg-screensaver", "reset", NULL};
     const int e = posix_spawnp(&waker_pid, waker[0], /*file_action=*/NULL,
@@ -54,6 +59,9 @@ static void* WakerThreadMain(void* const ignored) {
     if (e != 0) {
       char buf[128];
       LogDebug("failed to spawn waker: %d", strerror_r(e, buf, 128));
+    }
+    if (waitpid(waker_pid, /*wstatus=*/NULL, /*options=*/0) < 0) {
+      LogDebug("failed to wait for waker; continuing");
     }
     sleep(kWakeupSeconds);
   }
